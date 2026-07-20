@@ -1,6 +1,6 @@
-# Phaser Next.js Template
+# Phaser 4 Next.js Template
 
-This is a Phaser project template that uses the Next.js framework. It includes a bridge for React to Phaser game communication, hot-reloading for quick development workflow and scripts to generate production-ready builds.
+This is a Phaser 4 project template that uses the Next.js framework. It includes a bridge for React to Phaser game communication, hot reloading for quick development workflow, and scripts to generate production-ready builds.
 
 ### Versions
 
@@ -43,12 +43,12 @@ We have provided a default project structure to get you started. This is as foll
 | `src/pages/_document.tsx`     | A basic Next.js component entry point. It is used to define the `<html>` and `<body>` tags and other globally shared UI. |
 | `src`                         | Contains the Next.js client source code.                                   |
 | `src/styles/globals.css`      | Some simple global CSS rules to help with page layout. You can enable Tailwind CSS here. |
-| `src/page/_app.tsx`           | The main Next.js component.                                                |
+| `src/pages/_app.tsx`          | The main Next.js component.                                                |
 | `src/App.tsx`                 | Middleware component used to run Phaser in client mode.                    |
 | `src/PhaserGame.tsx`          | The React component that initializes the Phaser Game and serves as a bridge between React and Phaser. |
 | `src/game/EventBus.ts`        | A simple event bus to communicate between React and Phaser.                |
 | `src/game`                    | Contains the game source code.                                             |
-| `src/game/main.tsx`           | The main **game** entry point. This contains the game configuration and starts the game. |
+| `src/game/main.ts`            | The main game entry point. This contains the game configuration and starts the game. |
 | `src/game/scenes/`            | The Phaser Scenes are in this folder.                                      |
 | `public/favicon.png`          | The default favicon for the project.                                       |
 | `public/assets`               | Contains the static assets used by the game.                               |
@@ -88,7 +88,9 @@ You can get the current Phaser Scene from the component event `"current-active-s
 
 
 ```ts
-class MyScene extends Phaser.Scene
+import { Scene } from 'phaser';
+
+class MyScene extends Scene
 {
     constructor ()
     {
@@ -109,18 +111,19 @@ You don't have to emit this event if you don't need to access the specific scene
 
 ### React Component Example
 
-Here's an example of how to access Phaser data for use in a React Component:
+Here's an example of how to access Phaser data for use in a React component:
 
 ```ts
 import { useRef } from 'react';
-import { IRefPhaserGame } from "./game/PhaserGame";
+import { IRefPhaserGame } from './PhaserGame';
+import { Scene } from 'phaser';
 
 // In a parent component
 const ReactComponent = () => {
 
     const phaserRef = useRef<IRefPhaserGame>(); // you can access to this ref from phaserRef.current
 
-    const onCurrentActiveScene = (scene: Phaser.Scene) => {
+    const onCurrentActiveScene = (scene: Scene) => {
     
         // This is invoked
 
@@ -135,15 +138,15 @@ const ReactComponent = () => {
 }
 ```
 
-In the code above, you can get a reference to the current Phaser Game instance and the current Scene by creating a reference with `useRef()` and assign to PhaserGame component.
+In the code above, you can get a reference to the current Phaser Game instance and the current Scene by creating a reference with `useRef()` and assigning it to the `PhaserGame` component.
 
 From this state reference, the game instance is available via `phaserRef.current.game` and the most recently active Scene via `phaserRef.current.scene`.
 
-The `onCurrentActiveScene` callback will also be invoked whenever the the Phaser Scene changes, as long as you emit the event via the EventBus, as outlined above.
+The `onCurrentActiveScene` callback will also be invoked whenever the Phaser Scene changes, as long as you emit the event via the EventBus, as outlined above.
 
 ## Handling Assets
 
-To load your static games files such as audio files, images, videos, etc place them into the `public/assets` folder. Then you can use this path in the Loader calls within Phaser:
+To load your static game files such as audio files, images, and videos, place them into the `public/assets` folder. Then you can use this path in loader calls within Phaser:
 
 ```js
 preload ()
@@ -227,6 +230,6 @@ We love to see what developers like you create with Phaser! It really motivates 
 
 Created by [Phaser Studio](mailto:support@phaser.io). Powered by coffee, anime, pixels and love.
 
-The Phaser logo and characters are &copy; 2011 - 2025 Phaser Studio Inc.
+The Phaser logo and characters are &copy; 2011 - 2026 Phaser Studio Inc.
 
 All rights reserved.
