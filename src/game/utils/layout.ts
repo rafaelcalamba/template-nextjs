@@ -1,4 +1,14 @@
 import { GameObjects, Scene } from 'phaser';
+import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+
+export const getUiScale = (
+    width: number,
+    height: number,
+    baseWidth = GAME_WIDTH,
+    baseHeight = GAME_HEIGHT
+) => {
+    return Math.min(width / baseWidth, height / baseHeight);
+};
 
 export const fitImage = (
     image: GameObjects.Image,
