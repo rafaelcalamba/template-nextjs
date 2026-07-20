@@ -54,8 +54,8 @@ function App()
             if (scene)
             {
                 // Add more stars
-                const x = PhaserMath.Between(64, scene.scale.width - 64);
-                const y = PhaserMath.Between(64, scene.scale.height - 64);
+                const x = PhaserMath.Between(32, scene.scale.width - 32);
+                const y = PhaserMath.Between(32, scene.scale.height - 32);
     
                 //  `add.sprite` is a Phaser GameObjectFactory method and it returns a Sprite Game Object instance
                 const star = scene.add.sprite(x, y, 'star');

@@ -1,6 +1,7 @@
 import { GameObjects, Scene } from 'phaser';
-
 import { EventBus } from '../EventBus';
+import { bindLayout, fitImage } from '../utils/layout';
+import { fontStyles } from '../utils/fonts';
 
 export class MainMenu extends Scene
 {
@@ -16,17 +17,36 @@ export class MainMenu extends Scene
 
     create ()
     {
-        this.background = this.add.image(512, 384, 'background');
+        const { width, height } = this.scale;
+        const centerX = width * 0.5;
+        const centerY = height * 0.5;
 
-        this.logo = this.add.image(512, 300, 'logo').setDepth(100);
+        this.background = this.add.image(centerX, centerY, 'background');
 
-        this.title = this.add.text(512, 460, 'Main Menu', {
-            fontFamily: 'Arial Black', fontSize: 38, color: '#ffffff',
-            stroke: '#000000', strokeThickness: 8,
-            align: 'center'
+        this.logo = this.add.image(centerX, height * 0.39, 'logo').setDepth(100);
+
+        this.title = this.add.text(centerX, height * 0.6, 'Main Menu', {
+            ...fontStyles.body
         }).setOrigin(0.5).setDepth(100);
 
+        bindLayout(this, this.layout.bind(this));
+
         EventBus.emit('current-scene-ready', this);
+    }
+
+    private layout (width: number, height: number)
+    {
+        const centerX = width * 0.5;
+        const centerY = height * 0.5;
+
+        this.background.setPosition(centerX, centerY);
+        this.logo.setPosition(centerX, height * 0.39);
+        this.title.setPosition(centerX, height * 0.6);
+
+        const bgScale = Math.max(width / this.background.width, height / this.background.height);
+        this.background.setScale(bgScale);
+
+        fitImage(this.logo, width * 0.6, height * 0.22);
     }
     
     changeScene ()
@@ -42,23 +62,18 @@ export class MainMenu extends Scene
 
     moveLogo (reactCallback: ({ x, y }: { x: number, y: number }) => void)
     {
+        const { width, height } = this.scale;
+
         if (this.logoTween)
         {
-            if (this.logoTween.isPlaying())
-            {
-                this.logoTween.pause();
-            }
-            else
-            {
-                this.logoTween.play();
-            }
+            this.logoTween.isPlaying() ? this.logoTween.pause() : this.logoTween.play();
         } 
         else
         {
             this.logoTween = this.tweens.add({
                 targets: this.logo,
-                x: { value: 750, duration: 3000, ease: 'Back.easeInOut' },
-                y: { value: 80, duration: 1500, ease: 'Sine.easeOut' },
+                x: { value: width * 0.73, duration: 3000, ease: 'Back.easeInOut' },
+                y: { value: height * 0.08, duration: 1500, ease: 'Sine.easeOut' },
                 yoyo: true,
                 repeat: -1,
                 onUpdate: () => {
