@@ -1,7 +1,7 @@
 import { Boot } from './scenes/Boot';
 import { GameOver } from './scenes/GameOver';
 import { Game as MainGame } from './scenes/Game';
-import { MainMenu } from './scenes/MainMenu';
+import { Level0 } from './scenes/Level0';
 import { AUTO, Game, Scale } from 'phaser';
 import { Preloader } from './scenes/Preloader';
 import { GAME_HEIGHT, GAME_WIDTH } from './config';
@@ -22,7 +22,7 @@ const config: Phaser.Types.Core.GameConfig = {
     scene: [
         Boot,
         Preloader,
-        MainMenu,
+        Level0,
         MainGame,
         GameOver
     ]

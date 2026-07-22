@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
 import { Math as PhaserMath, Scene } from 'phaser';
 import { IRefPhaserGame, PhaserGame } from './PhaserGame';
-import { MainMenu } from './game/scenes/MainMenu';
+import { Level0 } from './game/scenes/Level0';
 
 function App()
 {
-    // The sprite can only be moved in the MainMenu Scene
+    // The sprite can only be moved in the Level0 Scene
     const [canMoveSprite, setCanMoveSprite] = useState(true);
 
     //  References to the PhaserGame component (game and scene are exposed)
@@ -16,7 +16,7 @@ function App()
 
         if(phaserRef.current)
         {     
-            const scene = phaserRef.current.scene as MainMenu;
+            const scene = phaserRef.current.scene as Level0;
             
             if (scene)
             {
@@ -30,9 +30,9 @@ function App()
         if(phaserRef.current)
         {
 
-            const scene = phaserRef.current.scene as MainMenu;
+            const scene = phaserRef.current.scene as Level0;
 
-            if (scene && scene.scene.key === 'MainMenu')
+            if (scene && scene.scene.key === 'Level0')
             {
                 // Get the update logo position
                 scene.moveLogo(({ x, y }) => {
@@ -77,7 +77,7 @@ function App()
     // Event emitted from the PhaserGame component
     const currentScene = (scene: Scene) => {
 
-        setCanMoveSprite(scene.scene.key !== 'MainMenu');
+        setCanMoveSprite(scene.scene.key !== 'Level0');
         
     }
 

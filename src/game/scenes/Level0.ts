@@ -4,7 +4,7 @@ import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { bindLayout, fitImage, getUiScale } from '../utils/layout';
 import { fontStyles } from '../utils/fonts';
 
-export class MainMenu extends Scene
+export class Level0 extends Scene
 {
     #cursorKeys: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
 
@@ -22,15 +22,15 @@ export class MainMenu extends Scene
     #score: number;
     #scoreIncrement: number = 10;
 
-    background: GameObjects.Image;
-    logo: GameObjects.Image;
-    score: GameObjects.Text;
-    health: GameObjects.Text;
-    logoTween: Phaser.Tweens.Tween | null;
+    #background: GameObjects.Image;
+    #logo: GameObjects.Image;
+    #scoreText: GameObjects.Text;
+    #healthText: GameObjects.Text;
+    #logoTween: Phaser.Tweens.Tween | null;
 
     constructor ()
     {
-        super('MainMenu');
+        super('Level0');
     }
 
     create ()
@@ -41,13 +41,13 @@ export class MainMenu extends Scene
         const centerX = width * 0.5;
         const centerY = height * 0.5;
 
-        this.background = this.add.image(centerX, centerY, 'background');
-        this.logo = this.add.image(centerX, height * 0.39, 'logo').setDepth(10).setVisible(false);
+        this.#background = this.add.image(centerX, centerY, 'background');
+        this.#logo = this.add.image(centerX, height * 0.39, 'logo').setDepth(10).setVisible(false);
 
-        this.score = this.add.text(0, 0, 'Score: 00', {
+        this.#scoreText = this.add.text(0, 0, 'Score: 00', {
             ...fontStyles.body
         }).setOrigin(0.5).setDepth(10);
-        this.health = this.add.text(0, 0, `Health: ${this.#playerHealth}`, {
+        this.#healthText = this.add.text(0, 0, `Health: ${this.#playerHealth}`, {
             ...fontStyles.body
         }).setOrigin(0.5).setDepth(10);
 
@@ -74,6 +74,15 @@ export class MainMenu extends Scene
 
     init ()
     {
+        this.time.removeAllEvents();
+        for (const bullet of this.#bullets) {
+            bullet.destroy();
+        }
+        this.#bullets = [];
+        for (const star of this.#stars) {
+            star.destroy();
+        }
+        this.#stars = [];
         this.#playerHealth = 100;
         this.#score = 0;
     }
@@ -82,17 +91,17 @@ export class MainMenu extends Scene
     {
         const centerX = width * 0.5;
         const centerY = height * 0.5;
-        this.background.setPosition(centerX, centerY);
-        this.logo.setPosition(centerX, height * 0.39);
-        this.score.setPosition(this.score.width * 0.6, this.score.height * 0.6);
-        this.health.setPosition(width - this.health.width * 0.6, this.health.height * 0.6);
+        this.#background.setPosition(centerX, centerY);
+        this.#logo.setPosition(centerX, height * 0.39);
+        this.#scoreText.setPosition(this.#scoreText.width * 0.6, this.#scoreText.height * 0.6);
+        this.#healthText.setPosition(width - this.#healthText.width * 0.6, this.#healthText.height * 0.6);
         this.#player.setPosition(centerX, height * 0.9);
 
-        const bgScale = Math.max(width / this.background.width, height / this.background.height);
-        this.background.setScale(bgScale);
+        const bgScale = Math.max(width / this.#background.width, height / this.#background.height);
+        this.#background.setScale(bgScale);
 
         const uiScale = getUiScale(width, height);
-        fitImage(this.logo, GAME_WIDTH * 0.6 * uiScale, GAME_HEIGHT * 0.22 * uiScale);
+        fitImage(this.#logo, GAME_WIDTH * 0.6 * uiScale, GAME_HEIGHT * 0.22 * uiScale);
         fitImage(this.#player, GAME_WIDTH * 0.2 * uiScale, GAME_HEIGHT * 0.1 * uiScale);
         // this.score.setFontSize(Math.round(12 * uiScale));
     }
@@ -105,7 +114,7 @@ export class MainMenu extends Scene
         this.#bullets.push(bullet);
     }
 
-    #spawnStars (width: number, count: number = 3) {
+    #spawnStars (width: number, count: number = 4) {
         for (let i = 0; i < count; i++) {
             const star = this.add.image(0, 0, 'star')
                 .setAlpha(0)
@@ -165,6 +174,7 @@ export class MainMenu extends Scene
 
             if (star.y > height)
             {
+                this.damagePlayer(this.#starDamage);
                 star.destroy();
                 this.#stars.splice(i, 1);
                 continue;
@@ -172,11 +182,7 @@ export class MainMenu extends Scene
 
             const isColliding = this.isColliding(star, this.#player);
             if (isColliding) {
-                this.#playerHealth -= this.#starDamage;
-                if (this.#playerHealth <= 0) {
-                    this.changeScene('GameOver');
-                }
-                this.health.setText(`Health: ${this.#playerHealth}`);
+                this.damagePlayer(this.#starDamage);
 
                 this.fadeAndDestroy(star);
                 this.#stars.splice(i, 1);
@@ -203,7 +209,7 @@ export class MainMenu extends Scene
                 if (isColliding)
                 {
                     this.#score += this.#scoreIncrement;
-                    this.score.setText(`Score: ${this.#score}`);
+                    this.#scoreText.setText(`Score: ${this.#score}`);
 
                     bullet.destroy();
                     this.#bullets.splice(i, 1);
@@ -214,6 +220,16 @@ export class MainMenu extends Scene
                 }
             }
         }
+    }
+
+    damagePlayer (amount: number)
+    {
+        this.#playerHealth -= amount;
+        if (this.#playerHealth <= 0)
+        {
+            this.changeScene('GameOver');
+        }
+        this.#healthText.setText(`Health: ${this.#playerHealth}`);
     }
 
     isColliding (gameObject1: GameObjects.Image, gameObject2: GameObjects.Image): boolean {
@@ -233,12 +249,12 @@ export class MainMenu extends Scene
         });
     }
     
-    changeScene (sceneKey: string)
+    changeScene (sceneKey: string = 'Level0')
     {
-        if (this.logoTween)
+        if (this.#logoTween)
         {
-            this.logoTween.stop();
-            this.logoTween = null;
+            this.#logoTween.stop();
+            this.#logoTween = null;
         }
 
         this.scene.start(sceneKey);
@@ -248,14 +264,14 @@ export class MainMenu extends Scene
     {
         const { width, height } = this.scale;
 
-        if (this.logoTween)
+        if (this.#logoTween)
         {
-            this.logoTween.isPlaying() ? this.logoTween.pause() : this.logoTween.play();
+            this.#logoTween.isPlaying() ? this.#logoTween.pause() : this.#logoTween.play();
         } 
         else
         {
-            this.logoTween = this.tweens.add({
-                targets: this.logo,
+            this.#logoTween = this.tweens.add({
+                targets: this.#logo,
                 x: { value: width * 0.73, duration: 3000, ease: 'Back.easeInOut' },
                 y: { value: height * 0.08, duration: 1500, ease: 'Sine.easeOut' },
                 yoyo: true,
@@ -264,8 +280,8 @@ export class MainMenu extends Scene
                     if (reactCallback)
                     {
                         reactCallback({
-                            x: Math.floor(this.logo.x),
-                            y: Math.floor(this.logo.y)
+                            x: Math.floor(this.#logo.x),
+                            y: Math.floor(this.#logo.y)
                         });
                     }
                 }

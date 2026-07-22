@@ -34,6 +34,6 @@ export class GameOver extends Scene
 
     changeScene ()
     {
-        this.scene.start('MainMenu');
+        this.scene.start('Level0');
     }
 }
