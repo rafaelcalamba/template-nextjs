@@ -41,6 +41,7 @@ export class Preloader extends Scene
         this.load.image('star', 'star.png');
         this.load.image('player', 'star.png');
         this.load.image('bullet', 'star.png');
+        this.load.image('enemy', 'star.png');
     }
 
     create ()
