@@ -5,13 +5,20 @@ import { fontStyles } from '../utils/fonts';
 
 export class GameOver extends Scene
 {
+    #score: number = 0;
     #camera: Phaser.Cameras.Scene2D.Camera;
     #background: Phaser.GameObjects.Image;
     #gameOverText: Phaser.GameObjects.Text;
+    #scoreText: Phaser.GameObjects.Text;
 
     constructor ()
     {
         super('GameOver');
+    }
+
+    init (data?: { score?: number })
+    {
+        this.#score = data?.score ?? 0;
     }
 
     create ()
@@ -28,7 +35,7 @@ export class GameOver extends Scene
         .setDepth(DepthLayers.Background)
         .setAlpha(0.5);
 
-        this.#gameOverText = this.add.text(centerX, centerY, 'Game Over', {
+        this.#gameOverText = this.add.text(centerX, centerY, `Game Over\nFinal Score: ${this.#score}`, {
             ...fontStyles.default
         }).setOrigin(0.5)
         .setDepth(DepthLayers.UI);

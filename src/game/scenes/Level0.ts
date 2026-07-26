@@ -283,7 +283,7 @@ export class Level0 extends Scene
     {
         this.#cleanupRuntime();
 
-        this.scene.start(sceneKey);
+        this.scene.start(sceneKey, { score: this.#score });
     }
 
     moveLogo (reactCallback: ({ x, y }: { x: number, y: number }) => void)
