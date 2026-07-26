@@ -173,7 +173,10 @@ export class Level0 extends Scene
 
             if (star.y > height)
             {
-                this.damagePlayer(this.#starDamage);
+                if (this.damagePlayer(this.#starDamage))
+                {
+                    return;
+                }
                 star.destroy();
                 this.#stars.splice(i, 1);
                 continue;
@@ -181,7 +184,10 @@ export class Level0 extends Scene
 
             const isColliding = this.isColliding(star, this.#player);
             if (isColliding) {
-                this.damagePlayer(this.#starDamage);
+                if (this.damagePlayer(this.#starDamage))
+                {
+                    return;
+                }
 
                 this.fadeAndDestroy(star);
                 this.#stars.splice(i, 1);
@@ -222,16 +228,19 @@ export class Level0 extends Scene
         }
     }
 
-    damagePlayer (amount: number)
+    damagePlayer (amount: number): boolean
     {
         this.#playerHealth -= amount;
+        this.#healthText.setText(`Health: ${this.#playerHealth}`);
+        this.#background.setTint(PhaserMath.Between(0, 0xffffff));
+
         if (this.#playerHealth <= 0)
         {
             this.changeScene('GameOver');
+            return true;
         }
-        this.#healthText.setText(`Health: ${this.#playerHealth}`);
 
-        this.#background.setTint(PhaserMath.Between(0, 0xffffff));
+        return false;
     }
 
     isColliding (gameObject1: GameObjects.Image, gameObject2: GameObjects.Image): boolean {
