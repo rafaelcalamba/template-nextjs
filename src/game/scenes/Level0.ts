@@ -1,7 +1,7 @@
-import { Scene, GameObjects, Geom, Math as PhaserMath } from 'phaser';
+import { Scene, GameObjects, Math as PhaserMath, Geom } from 'phaser';
 import { EventBus } from '../EventBus';
-import { GAME_HEIGHT, GAME_WIDTH } from '../config';
-import { bindLayout, fitImage, getUiScale } from '../utils/layout';
+import { GAME_WIDTH, GAME_HEIGHT, GAME_UI_MARGIN, DepthLayers } from '../config';
+import { bindLayout, getUiScale, fitImage } from '../utils/layout';
 import { fontStyles } from '../utils/fonts';
 
 export class Level0 extends Scene
@@ -33,25 +33,38 @@ export class Level0 extends Scene
         super('Level0');
     }
 
+    init ()
+    {
+        this.#bullets = [];
+        this.#stars = [];
+        this.#playerHealth = 100;
+        this.#score = 0;
+    }
+
     create ()
     {
-        this.#cursorKeys = this.input.keyboard?.createCursorKeys();
-
         const { width, height } = this.scale;
         const centerX = width * 0.5;
         const centerY = height * 0.5;
 
-        this.#background = this.add.image(centerX, centerY, 'background');
-        this.#logo = this.add.image(centerX, height * 0.39, 'logo').setDepth(10).setVisible(false);
+        this.#background = this.add.image(centerX, centerY, 'background')
+        .setTint(PhaserMath.Between(0, 0xffffff));
+        this.#logo = this.add.image(centerX, height * 0.39, 'logo')
+        .setDepth(DepthLayers.Background)
+        .setVisible(false);
 
-        this.#scoreText = this.add.text(0, 0, 'Score: 00', {
-            ...fontStyles.body
-        }).setOrigin(0.5).setDepth(10);
+        this.#scoreText = this.add.text(0, 0, `Score: ${this.#score}`, {
+            ...fontStyles.default
+        }).setOrigin(0, 0)
+        .setDepth(DepthLayers.UI);
         this.#healthText = this.add.text(0, 0, `Health: ${this.#playerHealth}`, {
-            ...fontStyles.body
-        }).setOrigin(0.5).setDepth(10);
+            ...fontStyles.default
+        }).setOrigin(1, 0)
+        .setDepth(DepthLayers.UI);
 
-        this.#player = this.add.sprite(centerX, height * 0.9, 'player').setDepth(100);
+        this.#player = this.add.sprite(centerX, height * 0.9, 'player')
+        .setTint(PhaserMath.Between(0, 0xffffff))
+        .setDepth(DepthLayers.Player);
 
         bindLayout(this, this.layout.bind(this));
 
@@ -61,7 +74,6 @@ export class Level0 extends Scene
             callbackScope: this,
             loop: true
         });
-
         this.time.addEvent({
             delay: 1000,
             callback: () => this.#spawnStars(width),
@@ -69,22 +81,10 @@ export class Level0 extends Scene
             loop: true
         });
 
-        EventBus.emit('current-scene-ready', this);
-    }
+        this.events.once('shutdown', this.#cleanupRuntime, this);
 
-    init ()
-    {
-        this.time.removeAllEvents();
-        for (const bullet of this.#bullets) {
-            bullet.destroy();
-        }
-        this.#bullets = [];
-        for (const star of this.#stars) {
-            star.destroy();
-        }
-        this.#stars = [];
-        this.#playerHealth = 100;
-        this.#score = 0;
+        this.#cursorKeys = this.input.keyboard?.createCursorKeys();
+        EventBus.emit('current-scene-ready', this);
     }
 
     private layout (width: number, height: number)
@@ -93,8 +93,8 @@ export class Level0 extends Scene
         const centerY = height * 0.5;
         this.#background.setPosition(centerX, centerY);
         this.#logo.setPosition(centerX, height * 0.39);
-        this.#scoreText.setPosition(this.#scoreText.width * 0.6, this.#scoreText.height * 0.6);
-        this.#healthText.setPosition(width - this.#healthText.width * 0.6, this.#healthText.height * 0.6);
+        this.#scoreText.setPosition(GAME_UI_MARGIN, GAME_UI_MARGIN);
+        this.#healthText.setPosition(width - GAME_UI_MARGIN, GAME_UI_MARGIN);
         this.#player.setPosition(centerX, height * 0.9);
 
         const bgScale = Math.max(width / this.#background.width, height / this.#background.height);
@@ -103,23 +103,22 @@ export class Level0 extends Scene
         const uiScale = getUiScale(width, height);
         fitImage(this.#logo, GAME_WIDTH * 0.6 * uiScale, GAME_HEIGHT * 0.22 * uiScale);
         fitImage(this.#player, GAME_WIDTH * 0.2 * uiScale, GAME_HEIGHT * 0.1 * uiScale);
-        // this.score.setFontSize(Math.round(12 * uiScale));
     }
 
     #fireBullet() {
         const bullet = this.add.image(this.#player.x, this.#player.y - this.#player.height * 0.5, 'bullet')
         .setTint(PhaserMath.Between(0, 0xffffff))
-        .setDepth(50)
+        .setDepth(DepthLayers.OverPlayer)
         .setScale(0.5);
         this.#bullets.push(bullet);
     }
 
-    #spawnStars (width: number, count: number = 4) {
+    #spawnStars (width: number, count: number = 5) {
         for (let i = 0; i < count; i++) {
             const star = this.add.image(0, 0, 'star')
                 .setAlpha(0)
                 .setTint(PhaserMath.Between(0, 0xffffff))
-                .setDepth(50);
+                .setDepth(DepthLayers.UnderPlayer);
             star.x = PhaserMath.Between(0 + star.width * 0.5, width - star.width * 0.5);
             this.tweens.add({ targets: star, alpha: 1, duration: 250 });
             this.#stars.push(star);
@@ -215,6 +214,7 @@ export class Level0 extends Scene
                     this.#bullets.splice(i, 1);
                     
                     this.fadeAndDestroy(star);
+                    // this.sound.play('explosion', { volume: 0.5 });
                     this.#stars.splice(j, 1);
                     break;
                 }
@@ -230,6 +230,8 @@ export class Level0 extends Scene
             this.changeScene('GameOver');
         }
         this.#healthText.setText(`Health: ${this.#playerHealth}`);
+
+        this.#background.setTint(PhaserMath.Between(0, 0xffffff));
     }
 
     isColliding (gameObject1: GameObjects.Image, gameObject2: GameObjects.Image): boolean {
@@ -248,14 +250,29 @@ export class Level0 extends Scene
             }
         });
     }
-    
-    changeScene (sceneKey: string = 'Level0')
+
+    #cleanupRuntime ()
     {
         if (this.#logoTween)
         {
             this.#logoTween.stop();
             this.#logoTween = null;
         }
+
+        this.time.removeAllEvents();
+        for (const bullet of this.#bullets) {
+            bullet.destroy();
+        }
+        this.#bullets = [];
+        for (const star of this.#stars) {
+            star.destroy();
+        }
+        this.#stars = [];
+    }
+    
+    changeScene (sceneKey: string = 'Game')
+    {
+        this.#cleanupRuntime();
 
         this.scene.start(sceneKey);
     }

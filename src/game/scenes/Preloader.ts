@@ -17,7 +17,8 @@ export class Preloader extends Scene
         this.add.image(centerX, centerY, 'background');
 
         //  A simple progress bar. This is the outline of the bar.
-        this.add.rectangle(centerX, centerY, width * 0.46, height * 0.04).setStrokeStyle(1, 0xffffff);
+        this.add.rectangle(centerX, centerY, width * 0.46, height * 0.04)
+        .setStrokeStyle(1, 0xffffff);
 
         //  This is the progress bar itself. It will increase in size from the left based on the % of progress.
         const bar = this.add.rectangle(centerX - (width * 0.22), centerY, width * 0.01, height * 0.04, 0xffffff);

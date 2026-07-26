@@ -1,12 +1,13 @@
+import { Scene, Math as PhaserMath } from 'phaser';
 import { EventBus } from '../EventBus';
-import { Scene } from 'phaser';
+import { DepthLayers } from '../config';
 import { fontStyles } from '../utils/fonts';
 
 export class GameOver extends Scene
 {
-    camera: Phaser.Cameras.Scene2D.Camera;
-    background: Phaser.GameObjects.Image;
-    gameOverText : Phaser.GameObjects.Text;
+    #camera: Phaser.Cameras.Scene2D.Camera;
+    #background: Phaser.GameObjects.Image;
+    #gameOverText: Phaser.GameObjects.Text;
 
     constructor ()
     {
@@ -19,21 +20,33 @@ export class GameOver extends Scene
         const centerX = width * 0.5;
         const centerY = height * 0.5;
 
-        this.camera = this.cameras.main;
-        this.camera.setBackgroundColor(0xff0000);
+        this.#camera = this.cameras.main;
+        this.#camera.setBackgroundColor(0xff0000);
 
-        this.background = this.add.image(centerX, centerY, 'background');
-        this.background.setAlpha(0.5);
+        this.#background = this.add.image(centerX, centerY, 'background')
+        .setTint(PhaserMath.Between(0, 0xffffff))
+        .setDepth(DepthLayers.Background)
+        .setAlpha(0.5);
 
-        this.gameOverText = this.add.text(centerX, centerY, 'Game Over', {
-            ...fontStyles.body
-        }).setOrigin(0.5).setDepth(100);
+        this.#gameOverText = this.add.text(centerX, centerY, 'Game Over', {
+            ...fontStyles.default
+        }).setOrigin(0.5)
+        .setDepth(DepthLayers.UI);
+
+        this.events.once('shutdown', this.#cleanupRuntime, this);
         
         EventBus.emit('current-scene-ready', this);
     }
 
+    #cleanupRuntime ()
+    {
+        this.time.removeAllEvents();
+        this.tweens.killAll();
+    }
+
     changeScene ()
     {
+        this.#cleanupRuntime();
         this.scene.start('Level0');
     }
 }

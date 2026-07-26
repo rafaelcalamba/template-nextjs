@@ -1,6 +1,22 @@
 import { GameObjects, Scene } from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 
+export const bindLayout = (
+    scene: Scene,
+    applyLayout: (width: number, height: number) => void
+) => {
+    const onResize = () => {
+        applyLayout(scene.scale.width, scene.scale.height);
+    };
+
+    onResize();
+    scene.scale.on('resize', onResize);
+
+    scene.events.once('shutdown', () => {
+        scene.scale.off('resize', onResize);
+    });
+};
+
 export const getUiScale = (
     width: number,
     height: number,
@@ -20,20 +36,4 @@ export const fitImage = (
     image.setScale(scale);
 
     return scale;
-};
-
-export const bindLayout = (
-    scene: Scene,
-    applyLayout: (width: number, height: number) => void
-) => {
-    const onResize = () => {
-        applyLayout(scene.scale.width, scene.scale.height);
-    };
-
-    onResize();
-    scene.scale.on('resize', onResize);
-
-    scene.events.once('shutdown', () => {
-        scene.scale.off('resize', onResize);
-    });
 };
