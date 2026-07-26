@@ -109,13 +109,27 @@ export class Level0 extends Scene
         const uiScale = getUiScale(width, height);
         fitImage(this.#logo, GAME_WIDTH * 0.6 * uiScale, GAME_HEIGHT * 0.22 * uiScale);
         fitImage(this.#player, GAME_WIDTH * 0.2 * uiScale, GAME_HEIGHT * 0.1 * uiScale);
+
+        const bulletSize = this.#player.displayWidth * 0.5;
+        for (const bullet of this.#bullets)
+        {
+            fitImage(bullet, bulletSize, bulletSize);
+        }
+        const starSize = this.#player.displayWidth * 0.75;
+        for (const star of this.#stars)
+        {
+            fitImage(star, starSize, starSize);
+        }
     }
 
     #fireBullet() {
         const bullet = this.add.image(this.#player.x, this.#player.y - this.#player.height * 0.5, 'bullet')
         .setTint(PhaserMath.Between(0, 0xffffff))
-        .setDepth(DepthLayers.OverPlayer)
-        .setScale(0.5);
+        .setDepth(DepthLayers.OverPlayer);
+
+        const bulletSize = this.#player.displayWidth * 0.5;
+        fitImage(bullet, bulletSize, bulletSize);
+
         this.#bullets.push(bullet);
     }
 
@@ -125,6 +139,10 @@ export class Level0 extends Scene
                 .setAlpha(0)
                 .setTint(PhaserMath.Between(0, 0xffffff))
                 .setDepth(DepthLayers.UnderPlayer);
+
+            const starSize = this.#player.displayWidth * 0.75;
+            fitImage(star, starSize, starSize);
+            
             star.x = PhaserMath.Between(0 + star.width * 0.5, width - star.width * 0.5);
             this.tweens.add({ targets: star, alpha: 1, duration: 250 });
             this.#stars.push(star);
