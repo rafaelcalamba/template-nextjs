@@ -15,9 +15,9 @@ export class Level0 extends Scene
     #bullets: GameObjects.Image[] = [];
     #bulletSpeed: number = 20;
 
-    #stars: GameObjects.Image[] = [];
-    #starSpeed: number = 2;
-    #starDamage: number = 10;
+    #enemies: GameObjects.Image[] = [];
+    #enemySpeed: number = 2;
+    #enemyDamage: number = 10;
 
     #score: number;
     #scoreIncrement: number = 10;
@@ -37,7 +37,7 @@ export class Level0 extends Scene
     init ()
     {
         this.#bullets = [];
-        this.#stars = [];
+        this.#enemies = [];
         this.#playerHealth = 100;
         this.#score = 0;
     }
@@ -81,7 +81,7 @@ export class Level0 extends Scene
         });
         this.time.addEvent({
             delay: 1000,
-            callback: () => this.#spawnStars(width),
+            callback: () => this.#spawnEnemies(width),
             callbackScope: this,
             loop: true
         });
@@ -115,10 +115,10 @@ export class Level0 extends Scene
         {
             fitImage(bullet, bulletSize, bulletSize);
         }
-        const starSize = this.#player.displayWidth * 0.75;
-        for (const star of this.#stars)
+        const enemySize = this.#player.displayWidth * 0.75;
+        for (const enemy of this.#enemies)
         {
-            fitImage(star, starSize, starSize);
+            fitImage(enemy, enemySize, enemySize);
         }
     }
 
@@ -133,19 +133,19 @@ export class Level0 extends Scene
         this.#bullets.push(bullet);
     }
 
-    #spawnStars (width: number, count: number = 5) {
+    #spawnEnemies (width: number, count: number = 5) {
         for (let i = 0; i < count; i++) {
-            const star = this.add.image(0, 0, 'star')
+            const enemy = this.add.image(0, 0, 'enemy')
                 .setAlpha(0)
                 .setTint(PhaserMath.Between(0, 0xffffff))
                 .setDepth(DepthLayers.UnderPlayer);
 
-            const starSize = this.#player.displayWidth * 0.75;
-            fitImage(star, starSize, starSize);
-            
-            star.x = PhaserMath.Between(0 + star.width * 0.5, width - star.width * 0.5);
-            this.tweens.add({ targets: star, alpha: 1, duration: 250 });
-            this.#stars.push(star);
+            const enemySize = this.#player.displayWidth * 0.75;
+            fitImage(enemy, enemySize, enemySize);
+
+            enemy.x = PhaserMath.Between(0 + enemy.width * 0.5, width - enemy.width * 0.5);
+            this.tweens.add({ targets: enemy, alpha: 1, duration: 250 });
+            this.#enemies.push(enemy);
         }
     }
     
@@ -189,32 +189,32 @@ export class Level0 extends Scene
             this.#player.y = height - playerHalfHeight;
         }
 
-        const starSpeed = this.#starSpeed * (delta / 16.6667);
-        for (let i = this.#stars.length - 1; i >= 0; i--)
+        const enemySpeed = this.#enemySpeed * (delta / 16.6667);
+        for (let i = this.#enemies.length - 1; i >= 0; i--)
         {
-            const star = this.#stars[i];
-            star.y += starSpeed;
+            const enemy = this.#enemies[i];
+            enemy.y += enemySpeed;
 
-            if (star.y > height)
+            if (enemy.y > height)
             {
-                if (this.damagePlayer(this.#starDamage))
+                if (this.damagePlayer(this.#enemyDamage))
                 {
                     return;
                 }
-                star.destroy();
-                this.#stars.splice(i, 1);
+                enemy.destroy();
+                this.#enemies.splice(i, 1);
                 continue;
             }
 
-            const isColliding = this.isColliding(star, this.#player);
+            const isColliding = this.isColliding(enemy, this.#player);
             if (isColliding) {
-                if (this.damagePlayer(this.#starDamage))
+                if (this.damagePlayer(this.#enemyDamage))
                 {
                     return;
                 }
 
-                this.fadeAndDestroy(star);
-                this.#stars.splice(i, 1);
+                this.fadeAndDestroy(enemy);
+                this.#enemies.splice(i, 1);
             }
         }
 
@@ -231,10 +231,10 @@ export class Level0 extends Scene
                 continue;
             }
 
-            for (let j = this.#stars.length - 1; j >= 0; j--)
+            for (let j = this.#enemies.length - 1; j >= 0; j--)
             {
-                const star = this.#stars[j];
-                const isColliding = this.isColliding(bullet, star);
+                const enemy = this.#enemies[j];
+                const isColliding = this.isColliding(bullet, enemy);
                 if (isColliding)
                 {
                     const previousScore = this.#score;
@@ -254,9 +254,9 @@ export class Level0 extends Scene
                     bullet.destroy();
                     this.#bullets.splice(i, 1);
                     
-                    this.fadeAndDestroy(star);
+                    this.fadeAndDestroy(enemy);
                     // this.sound.play('explosion', { volume: 0.5 });
-                    this.#stars.splice(j, 1);
+                    this.#enemies.splice(j, 1);
                     break;
                 }
             }
@@ -308,10 +308,10 @@ export class Level0 extends Scene
             bullet.destroy();
         }
         this.#bullets = [];
-        for (const star of this.#stars) {
-            star.destroy();
+        for (const enemy of this.#enemies) {
+            enemy.destroy();
         }
-        this.#stars = [];
+        this.#enemies = [];
     }
     
     changeScene (sceneKey: string = 'Game')
