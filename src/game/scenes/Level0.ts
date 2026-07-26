@@ -26,6 +26,7 @@ export class Level0 extends Scene
     #logo: GameObjects.Image;
     #scoreText: GameObjects.Text;
     #healthText: GameObjects.Text;
+    #goalText: GameObjects.Text;
     #logoTween: Phaser.Tweens.Tween | null;
 
     constructor ()
@@ -61,6 +62,10 @@ export class Level0 extends Scene
             ...fontStyles.default
         }).setOrigin(1, 0)
         .setDepth(DepthLayers.UI);
+        this.#goalText = this.add.text(centerX, centerY * 0.25, '+100 health per 1000 points', {
+            ...fontStyles.default
+        }).setOrigin(0.5)
+        .setDepth(DepthLayers.Background);
 
         this.#player = this.add.sprite(centerX, height * 0.9, 'player')
         .setTint(PhaserMath.Between(0, 0xffffff))
@@ -95,6 +100,7 @@ export class Level0 extends Scene
         this.#logo.setPosition(centerX, height * 0.39);
         this.#scoreText.setPosition(GAME_UI_MARGIN, GAME_UI_MARGIN);
         this.#healthText.setPosition(width - GAME_UI_MARGIN, GAME_UI_MARGIN);
+        this.#goalText.setPosition(centerX, centerY * 0.25);
         this.#player.setPosition(centerX, height * 0.9);
 
         const bgScale = Math.max(width / this.#background.width, height / this.#background.height);
@@ -213,8 +219,19 @@ export class Level0 extends Scene
                 const isColliding = this.isColliding(bullet, star);
                 if (isColliding)
                 {
+                    const previousScore = this.#score;
                     this.#score += this.#scoreIncrement;
                     this.#scoreText.setText(`Score: ${this.#score}`);
+
+                    const nextGoal = Math.floor(previousScore / 1000);
+                    const currentGoal = Math.floor(this.#score / 1000);
+                    if (currentGoal > nextGoal)
+                    {
+                        this.#playerHealth += 100;
+                        this.#player.setTint(PhaserMath.Between(0, 0xffffff));
+                        this.#healthText.setText(`Health: ${this.#playerHealth}`);
+                    }
+                    
 
                     bullet.destroy();
                     this.#bullets.splice(i, 1);
