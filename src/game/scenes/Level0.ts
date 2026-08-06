@@ -1,6 +1,6 @@
 import { Scene, GameObjects, Math as PhaserMath, Geom } from 'phaser';
 import { EventBus } from '../EventBus';
-import { GAME_WIDTH, GAME_HEIGHT, GAME_UI_MARGIN, DepthLayers } from '../config';
+import { GAME_WIDTH, GAME_HEIGHT, GAME_UI_MARGIN, GAME_DELTA_MILLISECOND, DepthLayers } from '../config';
 import { bindLayout, getUiScale, fitImage } from '../utils/layout';
 import { fontStyles } from '../utils/fonts';
 
@@ -14,10 +14,12 @@ export class Level0 extends Scene
 
     #bullets: GameObjects.Image[] = [];
     #bulletSpeed: number = 20;
+    #bulletInterval: number = 250;
 
     #enemies: GameObjects.Image[] = [];
     #enemySpeed: number = 2;
     #enemyDamage: number = 10;
+    #enemyInterval: number = 1000;
 
     #score: number;
     #scoreIncrement: number = 10;
@@ -74,13 +76,13 @@ export class Level0 extends Scene
         bindLayout(this, this.layout.bind(this));
 
         this.time.addEvent({
-            delay: 250,
+            delay: this.#bulletInterval,
             callback: this.#fireBullet,
             callbackScope: this,
             loop: true
         });
         this.time.addEvent({
-            delay: 1000,
+            delay: this.#enemyInterval,
             callback: () => this.#spawnEnemies(width),
             callbackScope: this,
             loop: true
@@ -151,7 +153,7 @@ export class Level0 extends Scene
     
     update (time: number, delta: number)
     {
-        const playerSpeed = this.#playerSpeed * (delta / 16.6667);
+        const playerSpeed = this.#playerSpeed * (delta / GAME_DELTA_MILLISECOND);
         if (this.#cursorKeys?.left.isDown)
         {
             this.#player.x -= playerSpeed;
@@ -189,7 +191,7 @@ export class Level0 extends Scene
             this.#player.y = height - playerHalfHeight;
         }
 
-        const enemySpeed = this.#enemySpeed * (delta / 16.6667);
+        const enemySpeed = this.#enemySpeed * (delta / GAME_DELTA_MILLISECOND);
         for (let i = this.#enemies.length - 1; i >= 0; i--)
         {
             const enemy = this.#enemies[i];
@@ -218,7 +220,7 @@ export class Level0 extends Scene
             }
         }
 
-        const bulletSpeed = this.#bulletSpeed * (delta / 16.6667);
+        const bulletSpeed = this.#bulletSpeed * (delta / GAME_DELTA_MILLISECOND);
         for (let i = this.#bullets.length - 1; i >= 0; i--)
         {
             const bullet = this.#bullets[i];
