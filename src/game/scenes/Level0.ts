@@ -1,6 +1,6 @@
 import { Scene, GameObjects, Math as PhaserMath, Geom } from 'phaser';
 import { EventBus } from '../EventBus';
-import { GAME_WIDTH, GAME_HEIGHT, GAME_UI_MARGIN, GAME_DELTA_MILLISECOND, DepthLayers } from '../config';
+import { GAME_WIDTH, GAME_HEIGHT, GAME_UI_MARGIN, GAME_FRAME_MILLISECOND, DepthLayers } from '../config';
 import { bindLayout, getUiScale, fitImage } from '../utils/layout';
 import { fontStyles } from '../utils/fonts';
 
@@ -11,6 +11,7 @@ export class Level0 extends Scene
     #player: GameObjects.Image;
     #playerSpeed: number = 5;
     #playerHealth: number;
+    #playerHealthIncrement: number = 100;
 
     #bullets: GameObjects.Image[] = [];
     #bulletSpeed: number = 20;
@@ -23,6 +24,7 @@ export class Level0 extends Scene
 
     #score: number;
     #scoreIncrement: number = 10;
+    #scoreGoal: number = 1000;
 
     #background: GameObjects.Image;
     #logo: GameObjects.Image;
@@ -64,7 +66,7 @@ export class Level0 extends Scene
             ...fontStyles.default
         }).setOrigin(1, 0)
         .setDepth(DepthLayers.UI);
-        this.#goalText = this.add.text(centerX, centerY * 0.25, '+100 health per 1000 points', {
+        this.#goalText = this.add.text(centerX, centerY * 0.25, `+${this.#playerHealthIncrement} health per ${this.#scoreGoal} points`, {
             ...fontStyles.default
         }).setOrigin(0.5)
         .setDepth(DepthLayers.Background);
@@ -153,7 +155,9 @@ export class Level0 extends Scene
     
     update (time: number, delta: number)
     {
-        const playerSpeed = this.#playerSpeed * (delta / GAME_DELTA_MILLISECOND);
+        const deltaFrame = delta / GAME_FRAME_MILLISECOND;
+
+        const playerSpeed = this.#playerSpeed * deltaFrame;
         if (this.#cursorKeys?.left.isDown)
         {
             this.#player.x -= playerSpeed;
@@ -191,36 +195,25 @@ export class Level0 extends Scene
             this.#player.y = height - playerHalfHeight;
         }
 
-        const enemySpeed = this.#enemySpeed * (delta / GAME_DELTA_MILLISECOND);
+        const enemySpeed = this.#enemySpeed * deltaFrame;
         for (let i = this.#enemies.length - 1; i >= 0; i--)
         {
             const enemy = this.#enemies[i];
             enemy.y += enemySpeed;
 
-            if (enemy.y > height)
+            const isColliding = this.isColliding(enemy, this.#player);
+            if (enemy.y > height || isColliding)
             {
                 if (this.damagePlayer(this.#enemyDamage))
                 {
                     return;
                 }
-                enemy.destroy();
-                this.#enemies.splice(i, 1);
-                continue;
-            }
-
-            const isColliding = this.isColliding(enemy, this.#player);
-            if (isColliding) {
-                if (this.damagePlayer(this.#enemyDamage))
-                {
-                    return;
-                }
-
-                this.fadeAndDestroy(enemy);
+                isColliding ? this.fadeAndDestroy(enemy) : enemy.destroy();
                 this.#enemies.splice(i, 1);
             }
         }
 
-        const bulletSpeed = this.#bulletSpeed * (delta / GAME_DELTA_MILLISECOND);
+        const bulletSpeed = this.#bulletSpeed * deltaFrame;
         for (let i = this.#bullets.length - 1; i >= 0; i--)
         {
             const bullet = this.#bullets[i];
@@ -243,11 +236,11 @@ export class Level0 extends Scene
                     this.#score += this.#scoreIncrement;
                     this.#scoreText.setText(`Score: ${this.#score}`);
 
-                    const nextGoal = Math.floor(previousScore / 1000);
-                    const currentGoal = Math.floor(this.#score / 1000);
+                    const nextGoal = Math.floor(previousScore / this.#scoreGoal);
+                    const currentGoal = Math.floor(this.#score / this.#scoreGoal);
                     if (currentGoal > nextGoal)
                     {
-                        this.#playerHealth += 100;
+                        this.#playerHealth += this.#playerHealthIncrement;
                         this.#player.setTint(PhaserMath.Between(0, 0xffffff));
                         this.#healthText.setText(`Health: ${this.#playerHealth}`);
                     }
